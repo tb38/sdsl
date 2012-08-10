@@ -107,55 +107,67 @@ bool construct_bwt2(tMSS& file_map, const std::string& dir, const std::string& i
 {
     typedef int_vector<>::size_type size_type;
     write_R_output("csa", "construct BWT", "begin", 1, 0);
-//		if( file_map.find("bwt") == file_map.end() ){ // if bwt is not already on disk => calculate it
-    int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());
-    const size_type n = sa_buf.int_vector_size;
-
-    if (n < 3)
-        return construct_bwt(file_map, dir, id);
-
-    unsigned char* text = NULL;
-    int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
-    util::load_from_int_vector_buffer(text, text_buf);
-
-    size_type cnt_c[257] = {0};   // counter for each character in the text
-    size_type cnt_cc[257] = {0};  // prefix sum of the counter cnt_c
-//			unsigned char alphabet[257] = {0};
-//			uint8_t sigma = 0;
-
-    write_R_output("csa", "construct C", "begin", 1, 0);
-    for (size_type i=0; i<n; ++i) { // initialize cnt_c
-        ++cnt_c[text[i]+1];
-    }
-    write_R_output("csa", "construct C", "end", 1, 0);
-    for (int i=1; i<257; ++i) { // calculate sigma and initailize cnt_cc
-//				if( cnt_c[i] > 0 ){ alphabet[sigma++] = (unsigned char)(i-1); }
-        cnt_cc[i] = cnt_c[i] + cnt_cc[i-1];
-    }
-//			alphabet[sigma] = '\0';
-
-    size_type to_add[2] = {-1,n-1};
-
-    int_vector<8> bwt(n,0);
-    sa_buf.reset();
-    for (size_type i=0, sai, r=0, r_sum=0 ; r_sum < n;) {
-        for (; i < r_sum+r; ++i) {
-            uint8_t bwti;
-            sai = sa_buf[i-r_sum];
-            if (bwt[i]) { // if the current BWT entry is already done
-                bwti = bwt[i];
-            } else {
-                bwti = bwt[i] = text[sai+to_add[sai==0]];
-                size_type lf = cnt_cc[bwti];
-                if (lf > i and sai > 1) {
-                    bwt[lf] = text[sai-2];
-                }
-            }
-            ++cnt_cc[bwti];					 // update counter and therefore the LF information
+    if( file_map.find("bwt") == file_map.end() ){ // if bwt is not already on disk => calculate it
+        std::string bwt_file_name = dir+"bwt_"+id;
+        std::ifstream bwt_in(bwt_file_name.c_str());
+        // check if bwt is already on disk => register it
+        if (bwt_in) {
+            file_map["bwt"] = bwt_file_name;
+            bwt_in.close();
+            return true;
         }
-        r_sum += r; r = sa_buf.load_next_block();
+        int_vector_file_buffer<> sa_buf(file_map["sa"].c_str());
+        const size_type n = sa_buf.int_vector_size;
+
+        if (n < 3)
+            return construct_bwt(file_map, dir, id);
+
+        unsigned char* text = NULL;
+        int_vector_file_buffer<8> text_buf(file_map["text"].c_str());
+        util::load_from_int_vector_buffer(text, text_buf);
+
+        size_type cnt_c[257] = {0};   // counter for each character in the text
+        size_type cnt_cc[257] = {0};  // prefix sum of the counter cnt_c
+//        			unsigned char alphabet[257] = {0};
+//        			uint8_t sigma = 0;
+
+        write_R_output("csa", "construct C", "begin", 1, 0);
+        for (size_type i=0; i<n; ++i) { // initialize cnt_c
+            ++cnt_c[text[i]+1];
+        }
+        write_R_output("csa", "construct C", "end", 1, 0);
+        for (int i=1; i<257; ++i) { // calculate sigma and initailize cnt_cc
+//    				if( cnt_c[i] > 0 ){ alphabet[sigma++] = (unsigned char)(i-1); }
+            cnt_cc[i] = cnt_c[i] + cnt_cc[i-1];
+        }
+//	    		alphabet[sigma] = '\0';
+
+        size_type to_add[2] = {-1,n-1};
+
+        int_vector<8> bwt(n,0);
+        sa_buf.reset();
+        for (size_type i=0, sai, r=0, r_sum=0 ; r_sum < n;) {
+            for (; i < r_sum+r; ++i) {
+                uint8_t bwti;
+                sai = sa_buf[i-r_sum];
+                if (bwt[i]) { // if the current BWT entry is already done
+                    bwti = bwt[i];
+                } else {
+                    bwti = bwt[i] = text[sai+to_add[sai==0]];
+                    size_type lf = cnt_cc[bwti];
+                    if (lf > i and sai > 1) {
+                        bwt[lf] = text[sai-2];
+                    }
+                }
+                ++cnt_cc[bwti];					 // update counter and therefore the LF information
+            }
+            r_sum += r; r = sa_buf.load_next_block();
+        }
+        if(!util::store_to_file(bwt, bwt_file_name.c_str())){
+                return false;
+        }
+        file_map["bwt"] = bwt_file_name;
     }
-//		}
     write_R_output("csa", "construct BWT", "end", 1, 0);
     return true;
 }
