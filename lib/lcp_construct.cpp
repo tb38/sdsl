@@ -4,7 +4,7 @@
 
 #include "sdsl/lcp_construct.hpp"
 #include "sdsl/wt_huff.hpp"
-#include "nn_dict_dynamic_naiv.cpp"
+#include "nn_dict_dynamic_naive.cpp"
 
 namespace sdsl
 {
@@ -1792,7 +1792,7 @@ bool construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::
     size_type intervals_new = 0;				// Number of new intervals
 
     std::queue<size_type> q;					// Queue for storing the intervals
-    nn_dict_dynamic_naiv dict[2];				// Nearest neighbor dictionary for storing the intervals
+    nn_dict_dynamic_naive dict[2];				// Nearest neighbor dictionary for storing the intervals
 //    nn_dict_dynamic dict[2];					// Nearest neighbor dictionary for storing the intervals
     size_type source = 0, target = 1;			// Defines which bitree is source and which is target
     char last_used = 'q';
