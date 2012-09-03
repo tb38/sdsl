@@ -575,6 +575,24 @@ class int_vector
         //TODO: rbegin()
         //TODO: rend()
 
+        //! Only for special-case of bit_vector: Get the leftmost index \f$i\geq idx\f$ where a bit is set.
+        /*! \param idx Left border of the search interval. \f$ 0\leq idx < size()\f$
+         *  \return If there exists a leftmost index \f$i\geq idx\f$ where a bit is set,
+         *          then \f$i\f$ is returned, otherwise size().
+         *  \par Time complexity
+         *      \f$ \Order{n} \f$
+         */
+        size_type nextBit(const size_type idx) const;
+
+        //! Only for special-case of bit_vector: Get the rightmost index \f$i \leq idx\f$ where a bit is set.
+        /*! \param idx Right border of the search interval. \f$ 0 \leq idx < size()\f$
+         *  \return If there exists a rightmost index \f$i \leq idx\f$ where a bit is set,
+         *          then \f$i\f$ is returned, otherwise size().
+         *  \par Time complexity
+         *      \f$ \Order{n} \f$
+         */
+        size_type prevBit(const size_type idx) const;
+
     private:
         //! Set the bit at position i to value b
         /* \param i Position of the bit to set to value b.
@@ -1353,6 +1371,47 @@ template<>
 inline int_vector<1>::const_reference int_vector<1>::operator[](const size_type& idx)const
 {
     return ((*(m_data+(idx>>6)))>>(idx&0x3F))&1;
+}
+template<>
+inline int_vector<1>::size_type int_vector<1>::nextBit(const size_type idx) const
+{
+	//return m_size;
+    uint64_t pos = idx>>6;
+    uint64_t node = m_data[pos];
+    node >>= (idx&0x3F);
+    if(node) {
+        return idx+bit_magic::r1BP(node);
+    } else {
+        ++pos;
+        while((pos<<6) < m_size) {
+            if(m_data[pos]) {
+                return (pos<<6)|bit_magic::r1BP(m_data[pos]);
+            }
+            ++pos;
+        }
+        return m_size;
+    }
+}
+
+template<>
+inline int_vector<1>::size_type int_vector<1>::prevBit(const size_type idx) const
+{
+	//return m_size;
+    uint64_t pos = idx>>6;
+    uint64_t node = m_data[pos];
+    node <<= 63-(idx&0x3F);
+    if(node) {
+        return bit_magic::l1BP(node)+(pos<<6)-(63-(idx&0x3F));
+    } else {
+        --pos;
+        while((pos<<6) < m_size ) {
+            if(m_data[pos]) {//       (node)+(pos<<6);
+                return (pos<<6)|bit_magic::l1BP(m_data[pos]);
+            }
+            --pos;
+        }
+        return m_size;
+    }
 }
 
 template<uint8_t fixedIntWidth, class size_type_class>

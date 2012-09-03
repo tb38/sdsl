@@ -4,7 +4,6 @@
 
 #include "sdsl/lcp_construct.hpp"
 #include "sdsl/wt_huff.hpp"
-#include "nn_dict_dynamic_naive.cpp"
 
 namespace sdsl
 {
@@ -1792,8 +1791,7 @@ bool construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::
     size_type intervals_new = 0;				// Number of new intervals
 
     std::queue<size_type> q;					// Queue for storing the intervals
-    nn_dict_dynamic_naive dict[2];				// Nearest neighbor dictionary for storing the intervals
-//    nn_dict_dynamic dict[2];					// Nearest neighbor dictionary for storing the intervals
+    vector<bit_vector> dict(2);					// BitVector for storing the intervals
     size_type source = 0, target = 1;			// Defines which bitree is source and which is target
     char last_used = 'q';
     size_type use_queue_and_wt = N/2048;		// if intervals < use_queue_and_wt, then use queue and wavelet tree
@@ -1857,14 +1855,14 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
             dict[target].resize(1);
 
             // copy from bitvector to queue
-            size_type a2 = dict[source].next(0);
-            size_type b2 = dict[source].next(a2+1);
+            size_type a2 = dict[source].nextBit(0);
+            size_type b2 = dict[source].nextBit(a2+1);
             while( b2 < dict[source].size() ) {
                 q.push((a2-1)>>1);
                 q.push(b2>>1);
                 // get next interval
-                a2 = dict[source].next(b2+1);
-                b2 = dict[source].next(a2+1);
+                a2 = dict[source].nextBit(b2+1);
+                b2 = dict[source].nextBit(a2+1);
             }
             dict[source].resize(1);
             write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
@@ -1925,8 +1923,8 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
             intervals = 0;
 
             // get next interval
-            size_type a2 = dict[source].next(0);
-            size_type b2 = dict[source].next(a2+1);
+            size_type a2 = dict[source].nextBit(0);
+            size_type b2 = dict[source].nextBit(a2+1);
 
             while( b2 < dict[source].size() ) {
                 wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, pos2char, rank_c_i, rank_c_j);
@@ -1954,8 +1952,8 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
                     }
                 }
                 // get next interval
-                a2 = dict[source].next(b2+1);
-                b2 = dict[source].next(a2+1);
+                a2 = dict[source].nextBit(b2+1);
+                b2 = dict[source].nextBit(a2+1);
             }
             // switch source and target
             source = 1-source;
@@ -2046,7 +2044,7 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
         size_type intervals_new = 0;                                    // Number of new intervals
 
         std::queue<size_type> q;                                        // Queue for storing the intervals
-        nn_dict_dynamic_naive dict[2];                                  // Nearest neighbor dictionary for storing the intervals
+        vector<bit_vector> dict(2);                                     // BitVector for storing the intervals
         size_type source = 0, target = 1;                               // Defines which bitree is source and which is target
         char last_used = 'q';
         size_type use_queue_and_wt = N/2048;                            // if intervals < use_queue_and_wt, then use queue and wavelet tree
@@ -2114,14 +2112,14 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
                 dict[target].resize(1);
 
                 // Copy from bitvector to queue
-                size_type a2 = dict[source].next(0);
-                size_type b2 = dict[source].next(a2+1);
+                size_type a2 = dict[source].nextBit(0);
+                size_type b2 = dict[source].nextBit(a2+1);
                 while( b2 < dict[source].size() ) {
                     q.push((a2-1)>>1);
                     q.push(b2>>1);
                     // Get next interval
-                    a2 = dict[source].next(b2+1);
-                    b2 = dict[source].next(a2+1);
+                    a2 = dict[source].nextBit(b2+1);
+                    b2 = dict[source].nextBit(a2+1);
                 }
                 dict[source].resize(1);
                 write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
@@ -2187,8 +2185,8 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
                 intervals = 0;
 
                 // get next interval
-                size_type a2 = dict[source].next(0);
-                size_type b2 = dict[source].next(a2+1);
+                size_type a2 = dict[source].nextBit(0);
+                size_type b2 = dict[source].nextBit(a2+1);
 
                 while( b2 < dict[source].size() ) {
                     wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, pos2char, rank_c_i, rank_c_j);
@@ -2221,8 +2219,8 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
                         }
                     }
                     // get next interval
-                    a2 = dict[source].next(b2+1);
-                    b2 = dict[source].next(a2+1);
+                    a2 = dict[source].nextBit(b2+1);
+                    b2 = dict[source].nextBit(a2+1);
                 }
                 // switch source and target
                 source = 1-source;
