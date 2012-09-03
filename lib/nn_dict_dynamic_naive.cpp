@@ -99,12 +99,12 @@ class nn_dict_dynamic_naive
             uint64_t node = m_vector[pos];
             node >>= (idx&0x3F);
             if(node) {
-                return bit_magic::r1BP(node)+((pos<<6)|(idx&0x3F));
+                return idx+bit_magic::r1BP(node);
             } else {
                 ++pos;
                 while(pos < m_vector.size() ) {
                     if(m_vector[pos]) {        //m_vector[pos])+(pos<<6
-                        return bit_magic::r1BP(m_vector[pos])|(pos<<6);
+                        return (pos<<6)|bit_magic::r1BP(m_vector[pos]);
                     }
                     ++pos;
                 }
@@ -128,7 +128,7 @@ class nn_dict_dynamic_naive
                 --pos;
                 while(pos < m_vector.size() ) {
                     if(m_vector[pos]) {//       (node)+(pos<<6);
-                        return bit_magic::l1BP(node)|(pos<<6);
+                        return (pos<<6)|bit_magic::l1BP(m_vector[pos]);
                     }
                     --pos;
                 }
