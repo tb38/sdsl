@@ -18,6 +18,7 @@
     \brief lcp_construct.hpp contains a space and time efficient construction method for lcp arrays
 	\author Simon Gog
 */
+
 #ifndef INCLUDED_SDSL_LCP_CONSTRUCT
 #define INCLUDED_SDSL_LCP_CONSTRUCT
 
@@ -28,6 +29,7 @@
 #include "testutils.hpp"
 #include "isa_construct.hpp"
 #include "bwt_construct.hpp"
+#include "wt_huff.hpp"
 
 #include <iostream>
 #include <stdexcept>

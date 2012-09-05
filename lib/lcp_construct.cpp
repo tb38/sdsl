@@ -3,7 +3,6 @@
 */
 
 #include "sdsl/lcp_construct.hpp"
-#include "sdsl/wt_huff.hpp"
 
 namespace sdsl
 {
