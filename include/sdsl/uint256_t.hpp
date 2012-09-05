@@ -232,6 +232,7 @@ class uint256_t
         }
 };
 
+inline
 std::ostream& operator<<(std::ostream& os, const uint256_t& x)
 {
     uint64_t X[4] = {(uint64_t)(x.m_high >> 64), (uint64_t)x.m_high, x.m_mid, x.m_lo};
