@@ -192,7 +192,7 @@ TEST_F(LcpConstructTest, construct_lcp_simple_5n)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        ASSERT_EQ(true, sdsl::construct_lcp_simple_5n(file_map, dir, id);
+        ASSERT_EQ(true, sdsl::construct_lcp_simple_5n(file_map, dir, id));
 
         // Check LCP-Array
         sdsl::int_vector<> lcp1, lcp2;
