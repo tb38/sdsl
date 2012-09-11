@@ -54,7 +54,6 @@ TEST_F(LcpConstructTest, prepare)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
         string id = "tc_"+sdsl::util::to_string(i);
         // Prepare Input
@@ -63,11 +62,9 @@ TEST_F(LcpConstructTest, prepare)
             text_buf.load_from_plain(this->test_cases[i].c_str());
             text_buf.reset();
             unsigned char *text = NULL;
-            success = sdsl::util::load_from_int_vector_buffer(text, text_buf);
-            ASSERT_EQ(true, success);
+            ASSERT_EQ(true, sdsl::util::load_from_int_vector_buffer(text, text_buf));
             size_type n = text_buf.int_vector_size;
-            success = sdsl::util::store_to_file(sdsl::char_array_serialize_wrapper<>((unsigned char*)text,n+1), (dir+"text_"+id).c_str() );
-            ASSERT_EQ(true, success);
+            ASSERT_EQ(true, sdsl::util::store_to_file(sdsl::char_array_serialize_wrapper<>((unsigned char*)text,n+1), (dir+"text_"+id).c_str() ));
             file_map["text"] = (dir+"text_"+id).c_str();
             delete [] text;
         }
@@ -79,13 +76,11 @@ TEST_F(LcpConstructTest, prepare)
             size_type n = text_buf.int_vector_size;
 
             unsigned char *text = NULL;
-            success = sdsl::util::load_from_int_vector_buffer(text, text_buf);
-            ASSERT_EQ(true, success);
+            ASSERT_EQ(true, sdsl::util::load_from_int_vector_buffer(text, text_buf));
             sdsl::int_vector<> sa = sdsl::int_vector<>(n, 0, sdsl::bit_magic::l1BP(n+1)+1);
             sdsl::algorithm::calculate_sa(text,n, sa);
             assert(sa.size() == n);
-            success = sdsl::util::store_to_file(sa, (dir+"sa_"+id).c_str() );
-            ASSERT_EQ(true, success);
+            ASSERT_EQ(true, sdsl::util::store_to_file(sa, (dir+"sa_"+id).c_str() ));
             file_map["sa"] = dir+"sa_"+id;
             {
                 sa.resize(0);
@@ -96,17 +91,15 @@ TEST_F(LcpConstructTest, prepare)
 
         // Construct BWT
         {
-            success = sdsl::construct_bwt(file_map, "", id);
-            ASSERT_EQ(true, success);
+            ASSERT_EQ(true, sdsl::construct_bwt(file_map, "", id));
         }
 
         // Construct LCP-Array
         {
-            success = sdsl::construct_lcp_kasai(file_map, dir, "org_" + id);
-            ASSERT_EQ(true, success);
+            ASSERT_EQ(true, sdsl::construct_lcp_kasai(file_map, dir, "org_" + id));
         }
 
-        // Save needed data structures
+        // Save needed data structures and delete not needed data structes
         global_file_map["text_"+id] = file_map["text"];
         file_map.erase("text");
         global_file_map["sa_"+id]   = file_map["sa"];
@@ -115,7 +108,6 @@ TEST_F(LcpConstructTest, prepare)
         file_map.erase("bwt");
         global_file_map["lcp_"+id]  = file_map["lcp"];
         file_map.erase("lcp");
-        // Delete not needed data structes
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -125,7 +117,6 @@ TEST_F(LcpConstructTest, construct_lcp_semi_extern_PHI)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -135,26 +126,21 @@ TEST_F(LcpConstructTest, construct_lcp_semi_extern_PHI)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_semi_extern_PHI(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_semi_extern_PHI(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -164,7 +150,6 @@ TEST_F(LcpConstructTest, construct_lcp_PHI)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -174,26 +159,21 @@ TEST_F(LcpConstructTest, construct_lcp_PHI)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_PHI(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_PHI(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -203,7 +183,6 @@ TEST_F(LcpConstructTest, construct_lcp_simple_5n)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -213,26 +192,21 @@ TEST_F(LcpConstructTest, construct_lcp_simple_5n)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_simple_5n(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_simple_5n(file_map, dir, id);
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -242,7 +216,6 @@ TEST_F(LcpConstructTest, construct_lcp_simple2_9n)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -252,26 +225,21 @@ TEST_F(LcpConstructTest, construct_lcp_simple2_9n)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_simple2_9n(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_simple2_9n(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -314,7 +282,6 @@ TEST_F(LcpConstructTest, construct_lcp_goPHI)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -324,26 +291,21 @@ TEST_F(LcpConstructTest, construct_lcp_goPHI)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_goPHI(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_goPHI(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -354,7 +316,6 @@ TEST_F(LcpConstructTest, construct_lcp_go2)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -364,26 +325,21 @@ TEST_F(LcpConstructTest, construct_lcp_go2)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_go2(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_go2(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -394,7 +350,6 @@ TEST_F(LcpConstructTest, construct_lcp_bwt_based)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -404,26 +359,21 @@ TEST_F(LcpConstructTest, construct_lcp_bwt_based)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_bwt_based(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_bwt_based(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
@@ -433,7 +383,6 @@ TEST_F(LcpConstructTest, construct_lcp_bwt_based2)
 {
     string dir = "";
     sdsl::tMSS file_map;
-    bool success = true;
     for (size_t i=0; i< this->test_cases.size(); ++i) {
 
         // Prepare LCP-Array construction
@@ -443,26 +392,21 @@ TEST_F(LcpConstructTest, construct_lcp_bwt_based2)
         file_map["bwt"]  = global_file_map["bwt_"+id];
 
         // Construct LCP-Array
-        success = sdsl::construct_lcp_bwt_based2(file_map, dir, id);
-        ASSERT_EQ(true, success);
+        ASSERT_EQ(true, sdsl::construct_lcp_bwt_based2(file_map, dir, id));
 
         // Check LCP-Array
-        sdsl::int_vector<> lcp1,lcp2;
-        success = sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str());
-        ASSERT_EQ(true, success);
-        success = sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str());
-        ASSERT_EQ(true, success);
+        sdsl::int_vector<> lcp1, lcp2;
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp1, global_file_map["lcp_"+id].c_str()));
+        ASSERT_EQ(true, sdsl::util::load_from_file(lcp2, file_map["lcp"].c_str()));
         ASSERT_EQ(lcp1.size(), lcp2.size());
-        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i){
+        for(size_type i=0; i<lcp1.size() and i<lcp2.size(); ++i) {
             ASSERT_EQ(lcp1[i], lcp2[i]);
         }
 
-        // Prepare CleanUp
+        // Clean up everything
         file_map.erase("text");
         file_map.erase("sa");
         file_map.erase("bwt");
-
-        // Clean up everything
         sdsl::util::delete_all_files(file_map);
     }
 }
