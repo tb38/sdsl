@@ -1805,7 +1805,9 @@ bool construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::
     // Calculate how many bit are for each lcp value available, to limit the memory usage to 20n bit = 2,5n byte, use at moste 8 bit
     size_type bb = (N*20-util::get_size_in_bytes(wt_bwt)*8*1.25-5*N)/N; 	// 20n - size of wavelet tree * 1.25 for rank support - 8n for bit arrays - n for finished array
     if(N*20 < util::get_size_in_bytes(wt_bwt)*8*1.25+5*N) {
+#ifdef STUDY_INFORMATIONS
         std::cout << "Cannot caluclate LCP-Array with less than 2.5n bytes." << std::endl;
+#endif
         bb = 6;
     }
     if(bb>8) {
@@ -1854,14 +1856,14 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
             dict[target].resize(1);
 
             // copy from bitvector to queue
-            size_type a2 = dict[source].nextBit(0);
-            size_type b2 = dict[source].nextBit(a2+1);
+            size_type a2 = util::next_bit(dict[source], 0);
+            size_type b2 = util::next_bit(dict[source], a2+1);
             while( b2 < dict[source].size() ) {
                 q.push((a2-1)>>1);
                 q.push(b2>>1);
                 // get next interval
-                a2 = dict[source].nextBit(b2+1);
-                b2 = dict[source].nextBit(a2+1);
+                a2 = util::next_bit(dict[source], b2+1);
+                b2 = util::next_bit(dict[source], a2+1);
             }
             dict[source].resize(1);
             write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
@@ -1922,8 +1924,8 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
             intervals = 0;
 
             // get next interval
-            size_type a2 = dict[source].nextBit(0);
-            size_type b2 = dict[source].nextBit(a2+1);
+            size_type a2 = util::next_bit(dict[source], 0);
+            size_type b2 = util::next_bit(dict[source], a2+1);
 
             while( b2 < dict[source].size() ) {
                 wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, pos2char, rank_c_i, rank_c_j);
@@ -1951,8 +1953,8 @@ std::cout << "# l=" << N+1 << " b=" << (int)bb << " lcp_value_max=" << lcp_value
                     }
                 }
                 // get next interval
-                a2 = dict[source].nextBit(b2+1);
-                b2 = dict[source].nextBit(a2+1);
+                a2 = util::next_bit(dict[source], b2+1);
+                b2 = util::next_bit(dict[source], a2+1);
             }
             // switch source and target
             source = 1-source;
@@ -2111,14 +2113,14 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
                 dict[target].resize(1);
 
                 // Copy from bitvector to queue
-                size_type a2 = dict[source].nextBit(0);
-                size_type b2 = dict[source].nextBit(a2+1);
+                size_type a2 = util::next_bit(dict[source], 0);
+                size_type b2 = util::next_bit(dict[source], a2+1);
                 while( b2 < dict[source].size() ) {
                     q.push((a2-1)>>1);
                     q.push(b2>>1);
                     // Get next interval
-                    a2 = dict[source].nextBit(b2+1);
-                    b2 = dict[source].nextBit(a2+1);
+                    a2 = util::next_bit(dict[source], b2+1);
+                    b2 = util::next_bit(dict[source], a2+1);
                 }
                 dict[source].resize(1);
                 write_R_output("lcp","BitVector -> Queue","end  ", 0, lcp_value);
@@ -2184,8 +2186,8 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
                 intervals = 0;
 
                 // get next interval
-                size_type a2 = dict[source].nextBit(0);
-                size_type b2 = dict[source].nextBit(a2+1);
+                size_type a2 = util::next_bit(dict[source], 0);
+                size_type b2 = util::next_bit(dict[source], a2+1);
 
                 while( b2 < dict[source].size() ) {
                     wt_bwt.interval_symbols(((a2-1)>>1), (b2>>1), quantity, pos2char, rank_c_i, rank_c_j);
@@ -2218,8 +2220,8 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
                         }
                     }
                     // get next interval
-                    a2 = dict[source].nextBit(b2+1);
-                    b2 = dict[source].nextBit(a2+1);
+                    a2 = util::next_bit(dict[source], b2+1);
+                    b2 = util::next_bit(dict[source], a2+1);
                 }
                 // switch source and target
                 source = 1-source;
@@ -2258,8 +2260,7 @@ bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std:
         lcp_array.write((char *) &(int_width), sizeof(int_width));      // Write int-width of vector
 
         size_type wb = 0;
-        for(size_type position_begin=0, position_end = number_of_values; position_begin<N; position_begin=position_end, position_end+=number_of_values) {
-
+        for(size_type position_begin=0, position_end = number_of_values; position_begin<N and number_of_values>0; position_begin=position_end, position_end+=number_of_values) {
 #ifdef STUDY_INFORMATIONS
 std::cout << "# fill lcp_values with " << position_begin << " <= position <" << position_end << ", each lcp-value has " << (int)int_width << " bit, lcp_value_max=" << lcp_value << std::endl;
 #endif
