@@ -502,7 +502,9 @@ calculated_l:
         r_sum += r; r = bwt_buf.load_next_block();
         sa_buf.load_next_block();
     }
-    std::cout<<"# comparisons: "<<comps<<std::endl;
+#ifdef STUDY_INFORMATIONS
+std::cout<<"# comparisons: "<<comps<<std::endl;
+#endif
     if (!util::store_to_file(lcp, (dir+"lcp_"+id).c_str())) {  // store the LCP values
         throw std::ios_base::failure("cst_construct: Cannot store LCP_sml to file system!");
         return false;

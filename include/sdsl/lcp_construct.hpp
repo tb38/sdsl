@@ -175,7 +175,7 @@ bool construct_lcp_bwt_based(tMSS& file_map, const std::string& dir, const std::
  *  \par Time complexity
  *		\f$ \Order{n \log{\sigma}} \f$
  *  \par Space complexity
- *		Usually less than \f$ 2.5n \f$ bytes
+ *		Usually not more than \f$ 1.5n \f$ bytes
  */
 bool construct_lcp_bwt_based2(tMSS& file_map, const std::string& dir, const std::string& id);
 
