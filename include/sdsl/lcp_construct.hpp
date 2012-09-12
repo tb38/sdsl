@@ -118,9 +118,6 @@ void push_back_m_index(size_type_class i, uint8_t c, tLI(&m_list)[256], uint8_t 
     m_list[c].push_back(i);
 }
 
-// only phase 1 of the new algorithm
-bool construct_lcp_simple_5n(tMSS& file_map, const std::string& dir, const std::string& id);
-
 // only phase 2 of the new algorithm
 // TODO: assert n > 0
 bool construct_lcp_simple2_9n(tMSS& file_map, const std::string& dir, const std::string& id);
