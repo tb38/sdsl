@@ -21,12 +21,21 @@
 #ifndef INCLUDED_SDSL_INT_VECTOR
 #define INCLUDED_SDSL_INT_VECTOR
 
+#include <sys/mman.h>
+
+#define HUGE_LEN 1073741824 
+#define HUGE_PROTECTION (PROT_READ | PROT_WRITE)
+#define HUGE_FLAGS (MAP_HUGETLB | MAP_ANONYMOUS | MAP_PRIVATE)
+
 #include "compatibility.hpp"
 #include "bitmagic.hpp"
 #include "util.hpp"
 #include "testutils.hpp"
 #include "uintx_t.hpp"
 #include "structure_tree.hpp"
+
+#include "memory_management.hpp"
+
 #include <iosfwd>    // forward declaration of ostream
 #include <stdexcept> // for exceptions
 #include <iostream>  // for cerr
@@ -52,6 +61,8 @@ typedef uint64_t std_size_type_for_int_vector;
 template<uint8_t fixedIntWidth=0, class size_type_class = std_size_type_for_int_vector>
 class int_vector; // forward declaration
 
+template<class int_vector_type>
+class mm_item; // forward declaration
 
 namespace algorithm
 {
@@ -328,6 +339,7 @@ class int_vector
         friend class  coder::fibonacci;
         friend class  coder::ternary;
         friend class  int_vector_file_buffer<fixedIntWidth, size_type_class>;
+		friend class mm_item<int_vector>;
         //! Operator to create an int_vector<1> (aka bit_vector) from an input stream.
         friend std::istream& operator>>(std::istream&, int_vector<1>&);
         friend void util::set_random_bits<int_vector>(int_vector& v, int);
@@ -1081,6 +1093,7 @@ inline std::istream& operator>>(std::istream &in, int_vector<1> &v){
 template<uint8_t fixedIntWidth, class size_type_class>
 inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements, value_type default_value, uint8_t intWidth):m_size(0), m_data(NULL), m_int_width(intWidth)
 {
+	mm::add( this );
     int_vector_trait<fixedIntWidth,size_type_class>::set_int_width(m_int_width, intWidth);
     resize(elements);
     if (default_value == 0) {
@@ -1095,6 +1108,7 @@ inline int_vector<fixedIntWidth,size_type_class>::int_vector(size_type elements,
 template<uint8_t fixedIntWidth, class size_type_class>
 inline int_vector<fixedIntWidth,size_type_class>::int_vector(const int_vector& v):m_size(0), m_data(NULL), m_int_width(v.m_int_width)
 {
+	mm::add( this );
     bit_resize(v.bit_size());
     if (v.capacity() > 0) {
         if (memcpy(m_data, v.data() ,v.capacity()/8)==NULL) {
@@ -1124,6 +1138,7 @@ int_vector<fixedIntWidth,size_type_class>& int_vector<fixedIntWidth,size_type_cl
 template<uint8_t fixedIntWidth, class size_type_class>
 int_vector<fixedIntWidth,size_type_class>::~int_vector()
 {
+	mm::remove( this );
     if (m_data != NULL) {
         free(m_data); //fixed delete
     }
